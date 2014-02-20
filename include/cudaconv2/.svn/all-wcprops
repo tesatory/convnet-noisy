@@ -1,0 +1,17 @@
+K 25
+svn:wc:ra_dav:version-url
+V 41
+/svn/!svn/ver/556/trunk/include/cudaconv2
+END
+conv_util.cuh
+K 25
+svn:wc:ra_dav:version-url
+V 55
+/svn/!svn/ver/556/trunk/include/cudaconv2/conv_util.cuh
+END
+cudaconv2.cuh
+K 25
+svn:wc:ra_dav:version-url
+V 55
+/svn/!svn/ver/540/trunk/include/cudaconv2/cudaconv2.cuh
+END
