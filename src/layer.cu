@@ -597,7 +597,6 @@ void SoftmaxLayer::fpropActs(int inpIdx, float scaleTargets, PASS_TYPE passType)
 void SoftmaxLayer::bpropActs(NVMatrix& v, int inpIdx, float scaleTargets, PASS_TYPE passType) {
     assert(inpIdx == 0);
     bool doLogregGrad = _next.size() == 1 && _next[0]->getType() == "cost.logreg";
-    doLogregGrad = false;
     if (doLogregGrad) {
         NVMatrix& labels = _next[0]->getPrev()[0]->getActs();
         float gradCoeff = dynamic_cast<CostLayer*>(_next[0])->getCoeff();
@@ -982,7 +981,6 @@ void LogregCostLayer::bpropActs(NVMatrix& v, int inpIdx, float scaleTargets, PAS
     // Numerical stability optimization: if the layer below me is a softmax layer, let it handle
     // the entire gradient computation to avoid multiplying and dividing by a near-zero quantity.
     bool doWork = _prev[1]->getNext().size() > 1 || _prev[1]->getType() != "softmax";
-    doWork = true;
     if (doWork) {
         computeLogregGrad(labels, probs, target, scaleTargets == 1, _coeff);
     }
