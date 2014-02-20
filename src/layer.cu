@@ -342,6 +342,13 @@ Weights& WeightLayer::getWeights(int idx) {
     return _weights[idx];
 }
 
+void WeightLayer::adjustLearningRate(float factor) {
+    for (int i = 0; i < _weights.getSize(); i++) {
+        _weights[i].setEps(factor * _weights[i].getEps());
+    }    
+    _biases->setEps(factor * _biases->getEps());
+}
+
 /* 
  * =======================
  * FCLayer

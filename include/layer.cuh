@@ -133,6 +133,7 @@ public:
     virtual void copyToGPU();
     void checkGradients();
     Weights& getWeights(int idx);
+    void adjustLearningRate(float factor);
 };
 
 class FCLayer : public WeightLayer {

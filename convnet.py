@@ -35,6 +35,8 @@ from convdata import *
 from os import linesep as NL
 #import pylab as pl
 
+from noiselayer import NoisyCIFARDataProvider
+
 class ConvNet(IGPUModel):
     def __init__(self, op, load_dic, dp_params={}):
         filename_options = []
@@ -192,6 +194,7 @@ class ConvNet(IGPUModel):
         DataProvider.register_data_provider('cifar', 'CIFAR', CIFARDataProvider)
         DataProvider.register_data_provider('dummy-cn-n', 'Dummy ConvNet', DummyConvNetDataProvider)
         DataProvider.register_data_provider('cifar-cropped', 'Cropped CIFAR', CroppedCIFARDataProvider)
+        DataProvider.register_data_provider('noisy-cifar', 'Noisy CIFAR', NoisyCIFARDataProvider)
         
         return op
     

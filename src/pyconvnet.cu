@@ -31,6 +31,8 @@
 #include <cublas.h>
 #include <time.h>
 #include <vector>
+#include <string>
+#include <iostream>
 
 #include <matrix.h>
 #include <queue.h>
@@ -40,6 +42,9 @@
 
 #include <pyconvnet.cuh>
 #include <convnet.cuh>
+
+#include "layer.cuh"
+#include "weights.cuh"
 
 using namespace std;
 static ConvNet* model = NULL;
@@ -51,6 +56,7 @@ static PyMethodDef _ConvNetMethods[] = {  { "initModel",          initModel,    
                                               { "startMultiviewTest", startMultiviewTest, METH_VARARGS },
                                               { "startFeatureWriter",  startFeatureWriter,         METH_VARARGS },
                                               { "syncWithHost",       syncWithHost,       METH_VARARGS },
+                                              { "adjustLearningRate",       adjustLearningRate,       METH_VARARGS },
                                               { NULL, NULL }
 };
 
@@ -203,3 +209,19 @@ PyObject* syncWithHost(PyObject *self, PyObject *args) {
     return Py_BuildValue("i", 0);
 }
 
+PyObject* adjustLearningRate(PyObject *self, PyObject *args) {
+    assert(model != NULL);
+    float factor;
+    if (!PyArg_ParseTuple(args, "f", &factor)) {
+        return NULL;
+    }
+
+    for (int i = 0; i < model->getNumLayers(); i++){
+        Layer& l = model->getLayer(i);
+        if (l.getType() == "fc" || l.getType() == "conv") {
+            ((WeightLayer&)l).adjustLearningRate(factor);
+        }
+    }
+
+    return Py_BuildValue("i", 0);
+}
