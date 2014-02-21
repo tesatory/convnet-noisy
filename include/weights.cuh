@@ -199,6 +199,10 @@ public:
     void setEps(float eps) {
         _epsW = eps;
     }
+
+    void setWC(float wc) {
+        _wc = wc;
+    }
 };
 
 class WeightList {

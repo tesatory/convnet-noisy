@@ -360,6 +360,10 @@ FCLayer::FCLayer(ConvNet* convNet, PyObject* paramsDict) : WeightLayer(convNet, 
 }
 
 void FCLayer::fpropActs(int inpIdx, float scaleTargets, PASS_TYPE passType) {
+    if (getName() == "noise" && passType == PASS_TEST) {
+        _inputs[inpIdx]->addScalar(0, getActs()); // noise layer does nothing during test
+        return;     
+    }
     getActs().addProduct(*_inputs[inpIdx], *_weights[inpIdx], scaleTargets, 1);
     if (scaleTargets == 0) {
         getActs().addVector(_biases->getW());
@@ -384,9 +388,7 @@ void FCLayer::bpropWeights(NVMatrix& v, int inpIdx, PASS_TYPE passType) {
     NVMatrix& prevActs_T = _prev[inpIdx]->getActs().getTranspose();
     float scaleInc = (_weights[inpIdx].getNumUpdates() == 0 && passType != PASS_GC) * _weights[inpIdx].getMom();
     float scaleGrad = passType == PASS_GC ? 1 : _weights[inpIdx].getEps() / numCases;
-    
     _weights[inpIdx].getInc().addProduct(prevActs_T, v, scaleInc, scaleGrad);
-    
     delete &prevActs_T;
 }
 

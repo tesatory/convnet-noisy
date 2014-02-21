@@ -27,6 +27,10 @@
 #include <algorithm>
 #include <util.cuh>
 #include <worker.cuh>
+#include <iostream>
+#include <layer.cuh>
+#include <nvmatrix.cuh>
+#include <noiselayer.cuh>
 
 using namespace std;
 
@@ -88,6 +92,7 @@ TrainingWorker::TrainingWorker(ConvNet& convNet, CPUData& data, bool test)
 void TrainingWorker::run() {
     _dp->setData(*_data);
     Cost& batchCost = *new Cost(0);
+    Layer& l = _convNet->getLayer(_convNet->getNumLayers() - 2);
     for (int i = 0; i < _dp->getNumMinibatches(); i++) {
         _convNet->fprop(i, _test ? PASS_TEST : PASS_TRAIN);
         _convNet->getCost(batchCost);
@@ -95,6 +100,11 @@ void TrainingWorker::run() {
         if (!_test) {
             _convNet->bprop(PASS_TRAIN);
             _convNet->updateWeights();
+            if (l.getName() == "noise") {
+                // this weight is representing probability, so it should be normalized
+                NVMatrix& m = ((WeightLayer&)l).getWeights(0).getW();
+                prob_project(m);
+            }
         }
     }
     cudaThreadSynchronize();

@@ -57,6 +57,7 @@ static PyMethodDef _ConvNetMethods[] = {  { "initModel",          initModel,    
                                               { "startFeatureWriter",  startFeatureWriter,         METH_VARARGS },
                                               { "syncWithHost",       syncWithHost,       METH_VARARGS },
                                               { "adjustLearningRate",       adjustLearningRate,       METH_VARARGS },
+                                              { "setNoiseParams",       setNoiseParams,       METH_VARARGS },
                                               { NULL, NULL }
 };
 
@@ -222,6 +223,20 @@ PyObject* adjustLearningRate(PyObject *self, PyObject *args) {
             ((WeightLayer&)l).adjustLearningRate(factor);
         }
     }
+
+    return Py_BuildValue("i", 0);
+}
+
+PyObject* setNoiseParams(PyObject *self, PyObject *args) {
+    assert(model != NULL);
+    float epsW, wc;
+    if (!PyArg_ParseTuple(args, "ff", &epsW, &wc)) {
+        return NULL;
+    }
+
+    WeightLayer& l = (WeightLayer&)model->getLayer(model->getNumLayers() - 2);
+    l.getWeights(0).setEps(epsW);
+    l.getWeights(0).setWC(wc);
 
     return Py_BuildValue("i", 0);
 }

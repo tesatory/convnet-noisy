@@ -40,6 +40,7 @@ PyObject* syncWithHost(PyObject *self, PyObject *args);
 PyObject* startMultiviewTest(PyObject *self, PyObject *args);
 PyObject* startFeatureWriter(PyObject *self, PyObject *args);
 PyObject* adjustLearningRate(PyObject *self, PyObject *args);
+PyObject* setNoiseParams(PyObject *self, PyObject *args);
 
 #endif	/* PYCONVNET3_CUH */
 

@@ -90,7 +90,7 @@ __global__ void kLogregCostGrad(float* y_l, float* labels, float* dE_dy_l, const
     if (ty < numOut && tx < numCases) {
         const int label = int(labels[tx]);
         float v = gradCoeff * (label == ty);
-        v = __fdividef(v, y_l[tidx]);
+        v = __fdividef(v, (y_l[tidx] + 0.000001));
         if (add) {
             dE_dy_l[tidx] += v;
         } else {
