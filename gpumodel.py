@@ -24,7 +24,7 @@
 
 import numpy as n
 import os
-from time import time, asctime, localtime, strftime
+from time import time, asctime, localtime, strftime, sleep
 from numpy.random import randn, rand
 from numpy import s_, dot, tile, zeros, ones, zeros_like, array, ones_like
 from util import *
@@ -36,6 +36,12 @@ import sys
 import shutil
 import platform
 from os import linesep as NL
+
+can_plot = True
+try:
+    import pylab as pl
+except:
+    can_plot = False
 
 class ModelStateException(Exception):
     pass
@@ -155,14 +161,34 @@ class IGPUModel:
                 self.print_test_results()
                 self.print_test_status()
                 self.conditional_save()
+                self.plot_stat()
             
             self.print_train_time(time() - compute_time_py)
         self.cleanup()
+
+    def plot_stat(self):
+        if can_plot == False:
+            return
+        test_errors = [o[0]['logprob'][1] for o in self.test_outputs]
+        pl.clf()
+        f = pl.gcf()
+        f.add_subplot('221')
+        pl.plot(test_errors)
+
+        f.add_subplot('222')
+        if self.layers[-2]['name'] == 'noise':
+            w = self.layers[-2]['weights'][0]
+            pl.imshow(w.transpose(), interpolation = 'nearest') 
+            pl.colorbar()
+
+        pl.draw()
+        sleep(0.1)
+
     
     def cleanup(self):
         # sys.exit(0)
         pass
-        
+
     def sync_with_host(self):
         self.libmodel.syncWithHost()
             
