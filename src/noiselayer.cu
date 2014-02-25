@@ -2,7 +2,7 @@
 
 // normalize so that each column represents probability using projection
 void prob_project(NVMatrix& m) {
-	const float eps = 0.0001;
+	const float eps = 0.000001;
 	NVMatrix* pos = new NVMatrix(m);	// identify postive elements
 	NVMatrix* x = new NVMatrix(m);
 	pos->apply(NVMatrixOps::One());

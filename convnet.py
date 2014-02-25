@@ -33,12 +33,12 @@ import math as m
 import layer as lay
 from convdata import *
 from os import linesep as NL
-from noiselayer import NoisyCIFARDataProvider
 #import pylab as pl
 
 class ConvNet(IGPUModel):
     def __init__(self, op, load_dic, dp_params={}):
         filename_options = []
+        filename_options = [['train_batch_range','TR'], ['noise_level','NL'], ['noise_wc','WC']]
         dp_params['multiview_test'] = op.get_value('multiview_test')
         dp_params['crop_border'] = op.get_value('crop_border')
         IGPUModel.__init__(self, "ConvNet", op, load_dic, filename_options, dp_params=dp_params)
@@ -193,7 +193,6 @@ class ConvNet(IGPUModel):
         DataProvider.register_data_provider('cifar', 'CIFAR', CIFARDataProvider)
         DataProvider.register_data_provider('dummy-cn-n', 'Dummy ConvNet', DummyConvNetDataProvider)
         DataProvider.register_data_provider('cifar-cropped', 'Cropped CIFAR', CroppedCIFARDataProvider)
-        DataProvider.register_data_provider('noisy-cifar', 'Noisy CIFAR', NoisyCIFARDataProvider)
         
         return op
     
