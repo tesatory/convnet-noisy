@@ -2,6 +2,7 @@ from gpumodel import *
 from convnet import ConvNet
 from options import *
 import numpy as n
+import scipy.io
 
 def mix_labels(W, labels):
     N = W.shape[0]
@@ -19,12 +20,23 @@ class NoiseNet(ConvNet):
         IGPUModel.__init__(self, "ConvNet", op, load_dic, filename_options, dp_params=dp_params)
 
     def init_model_lib(self):
-        if self.noise_true:
-            self.layers[-2]['weights'][0] = n.array(self.noise_W.transpose(), dtype=n.single, order='C')
+        if self.layers[-2]['name'] == 'noise':
+            if self.noise_true:
+                self.layers[-2]['weights'][0] = n.array(self.noise_W.transpose(), dtype=n.single, order='C')
+            if self.layers[-2]['weights'][0].shape == (11, 11):
+                w = n.eye(11, dtype = n.float32)
+                w[10, :10] = 0.1
+                w[10, 10] = 0
+                print "test weight for noise layer"
+                print w
+                self.layers[-2]['testWeight'] = w
+                self.layers[-2]['testWeightInc'] = n.zeros((11, 11), dtype = n.float32)
         ConvNet.init_model_lib(self)
 
     def init_data_providers(self):
         ConvNet.init_data_providers(self)
+        if self.noise_level == 0:
+            return
         self.noise_W = n.load('data/mixing-offdiag-2.npy')
         self.noise_W = self.noise_level * self.noise_W + (1 - self.noise_level) * n.eye(self.noise_W.shape[0])
         for d in self.train_data_provider.data_dic:
@@ -50,19 +62,45 @@ class NoiseNet(ConvNet):
 
         return op
 
+    def savemat(self, path):
+        self.sync_with_host()
+        d = dict()
+        for l in self.layers:
+            if l.has_key('weights'):
+                d['weight_' + l['name']] = l['weights'][0]
+                d['bias_' + l['name']] = l['biases']
+        scipy.io.savemat(path, d)
+
 if __name__ == "__main__":
     op = NoiseNet.get_options_parser()
     op, load_dic = IGPUModel.parse_options(op)
     model = NoiseNet(op, load_dic)
 
-    model.start()
-    if model.num_epochs2 > 0:
-        model.libmodel.setNoiseParams(model.noise_eps, model.noise_wc)
-        model.num_epochs += model.num_epochs2
+    if model.num_epochs + model.num_epochs2> 0:
         model.start()
-    model.libmodel.adjustLearningRate(0.1)
-    model.num_epochs += 10
-    model.start()
-    model.libmodel.adjustLearningRate(0.1)
-    model.num_epochs += 10
-    model.start()
+        if model.num_epochs2 > 0:
+            model.libmodel.setNoiseParams(model.noise_eps, model.noise_wc)
+            model.num_epochs += model.num_epochs2
+            model.start()
+        model.libmodel.adjustLearningRate(0.1)
+        model.num_epochs += 10
+        model.start()
+        model.libmodel.adjustLearningRate(0.1)
+        model.num_epochs += 10
+        model.start()
+    # for i in range(10):
+    #     model.num_epochs = 10 * (i + 1)
+    #     model.start()
+    #     model.libmodel.adjustLearningRate(0.1)
+    #     model.num_epochs += 1
+    #     model.start()
+    #     model.libmodel.adjustLearningRate(0.1)
+    #     model.num_epochs += 1
+    #     model.start()
+    #     model.libmodel.adjustLearningRate(100)
+    # model.libmodel.adjustLearningRate(0.1)
+    # model.num_epochs += 10
+    # model.start()
+    # model.libmodel.adjustLearningRate(0.1)
+    # model.num_epochs += 10
+    # model.start()

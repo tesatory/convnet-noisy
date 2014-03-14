@@ -169,21 +169,23 @@ class IGPUModel:
     def plot_stat(self):
         if can_plot == False:
             return
-        test_errors = [o[0]['logprob'][1] for o in self.test_outputs]
-        pl.clf()
-        f = pl.gcf()
-        f.add_subplot('221')
-        pl.plot(test_errors)
+        try:
+            test_errors = [o[0]['logprob'][1] for o in self.test_outputs]
+            pl.clf()
+            f = pl.gcf()
+            f.add_subplot('221')
+            pl.plot(test_errors)
 
-        f.add_subplot('222')
-        if self.layers[-2]['name'] == 'noise':
-            w = self.layers[-2]['weights'][0]
-            pl.imshow(w.transpose(), interpolation = 'nearest') 
-            pl.colorbar()
+            f.add_subplot('222')
+            if self.layers[-2]['name'] == 'noise':
+                w = self.layers[-2]['weights'][0]
+                pl.imshow(w.transpose(), interpolation = 'nearest') 
+                pl.colorbar()
 
-        pl.draw()
-        sleep(0.1)
-
+            pl.draw()
+            sleep(0.1)
+        except:
+            pass
     
     def cleanup(self):
         # sys.exit(0)

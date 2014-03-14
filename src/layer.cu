@@ -25,6 +25,7 @@
  */
 #include <cutil_inline.h>
 #include <iostream>
+#include <math.h>
 
 #include <layer_kernels.cuh>
 #include <layer.cuh>
@@ -32,6 +33,7 @@
 #include <util.cuh>
 #include <cudaconv2.cuh>
 #include <matrix.h>
+#include <Python.h>
 
 using namespace std;
 
@@ -262,7 +264,6 @@ WeightLayer::WeightLayer(ConvNet* convNet, PyObject* paramsDict, bool trans, boo
     MatrixV& hWeightsInc = *pyDictGetMatrixV(paramsDict, "weightsInc");
     Matrix& hBiases = *pyDictGetMatrix(paramsDict, "biases");
     Matrix& hBiasesInc = *pyDictGetMatrix(paramsDict, "biasesInc");
-    
     floatv& momW = *pyDictGetFloatV(paramsDict, "momW");
     float momB = pyDictGetFloat(paramsDict, "momB");
     floatv& epsW = *pyDictGetFloatV(paramsDict, "epsW");
@@ -301,6 +302,12 @@ WeightLayer::WeightLayer(ConvNet* convNet, PyObject* paramsDict, bool trans, boo
     delete &momW;
     delete &epsW;
     delete &wc;
+
+    if (getName() == "noise" && PyDict_GetItemString(paramsDict, "testWeight") != NULL) {
+        Matrix& testWeight = *pyDictGetMatrix(paramsDict, "testWeight");
+        Matrix& testWeightInc = *pyDictGetMatrix(paramsDict, "testWeightInc");
+        _weights.addWeights(*new Weights(testWeight, testWeightInc,0, 0, 0, false));
+    }    
 }
 
 void WeightLayer::bpropCommon(NVMatrix& v, PASS_TYPE passType) {
@@ -317,6 +324,10 @@ void WeightLayer::bpropCommon(NVMatrix& v, PASS_TYPE passType) {
 }
 
 void WeightLayer::updateWeights() {
+    if (getName() == "noise") {
+        _weights[0].getGrad().maxWithScalar(-0.1);
+        _weights[0].getGrad().minWithScalar(0.1);
+    }
     _weights.update();
     _biases->update();
 }
@@ -361,7 +372,11 @@ FCLayer::FCLayer(ConvNet* convNet, PyObject* paramsDict) : WeightLayer(convNet, 
 
 void FCLayer::fpropActs(int inpIdx, float scaleTargets, PASS_TYPE passType) {
     if (getName() == "noise" && passType == PASS_TEST) {
-        _inputs[inpIdx]->addScalar(0, getActs()); // noise layer does nothing during test
+        if (_weights.getSize() > 1) {
+            getActs().addProduct(*_inputs[inpIdx], *_weights[1], scaleTargets, 1);
+        } else {
+            _inputs[inpIdx]->addScalar(0, getActs()); // noise layer does nothing during test            
+        }
         return;     
     }
     getActs().addProduct(*_inputs[inpIdx], *_weights[inpIdx], scaleTargets, 1);
@@ -373,6 +388,14 @@ void FCLayer::fpropActs(int inpIdx, float scaleTargets, PASS_TYPE passType) {
 void FCLayer::bpropActs(NVMatrix& v, int inpIdx, float scaleTargets, PASS_TYPE passType) {
     NVMatrix& weights_T = _weights[inpIdx].getW().getTranspose();
     _prev[inpIdx]->getActsGrad().addProduct(v, weights_T, scaleTargets, 1);
+    // if (getName() == "noise") {
+    //     cout << _prev[inpIdx]->getActsGrad().min() << " | " << _prev[inpIdx]->getActsGrad().max() << "\n";
+    //     if(isnan(_prev[inpIdx]->getActsGrad().min()) || isnan(_prev[inpIdx]->getActsGrad().max())){
+    //         v.print(200, 200);
+    //         weights_T.print(100, 100);
+    //         assert(false);
+    //     }
+    // }
     delete &weights_T;
 }
 
