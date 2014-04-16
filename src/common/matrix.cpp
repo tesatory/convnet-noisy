@@ -636,7 +636,7 @@ void Matrix::print(long int rows, long int cols) const {
 void Matrix::print(long int startRow, long int rows, long int startCol, long int cols) const {
     for (long int i = startRow; i < std::min(startRow+rows, this->_numRows); i++) {
         for (long int j = startCol; j < std::min(startCol+cols, this->_numCols); j++) {
-            printf("%.15f ", (*this)(i, j));
+            printf("%.5f ", (*this)(i, j));
         }
         printf("\n");
     }

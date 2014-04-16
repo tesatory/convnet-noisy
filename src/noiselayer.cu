@@ -1,4 +1,23 @@
 #include <noiselayer.cuh>
+#include <assert.h>
+
+void prob_project_dual(NVMatrix& m, NVMatrix& m_test) {
+	int dim = m.getNumRows();
+	assert(2 * dim == m.getNumCols());
+
+	// normalize only the second half
+	NVMatrix* m_noisy = new NVMatrix(dim, dim);
+	m.sliceCols(dim, 2 * dim, *m_noisy);
+	prob_project(*m_noisy);
+	m_noisy->copy(m, 0, dim, 0, dim, 0, dim);
+	delete m_noisy;
+
+	// make the first half identity
+	NVMatrix* m_clear =  new NVMatrix(dim, dim);
+	m_test.sliceCols(0, dim, *m_clear); 
+	m_clear->copy(m, 0, dim, 0, dim, 0, 0);
+	delete m_clear;
+}
 
 // normalize so that each column represents probability using projection
 void prob_project(NVMatrix& m) {

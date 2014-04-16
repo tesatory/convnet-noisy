@@ -31,6 +31,13 @@ class NoiseNet(ConvNet):
                 print w
                 self.layers[-2]['testWeight'] = w
                 self.layers[-2]['testWeightInc'] = n.zeros((11, 11), dtype = n.float32)
+            if self.layers[-2]['weights'][0].shape == (10, 20):
+                w = n.zeros((10, 20), dtype = n.float32)
+                w[:,:10] = n.eye(10, dtype = n.float32)
+                print "test weight for noise layer"
+                print w
+                self.layers[-2]['testWeight'] = w
+                self.layers[-2]['testWeightInc'] = n.zeros((10, 20), dtype = n.float32)
         ConvNet.init_model_lib(self)
 
     def init_data_providers(self):
@@ -76,7 +83,7 @@ if __name__ == "__main__":
     op, load_dic = IGPUModel.parse_options(op)
     model = NoiseNet(op, load_dic)
 
-    if model.num_epochs + model.num_epochs2> 0:
+    if model.num_epochs > 0 and (model.num_epochs2 > 0 or model.noise_true):
         model.start()
         if model.num_epochs2 > 0:
             model.libmodel.setNoiseParams(model.noise_eps, model.noise_wc)
@@ -88,19 +95,20 @@ if __name__ == "__main__":
         model.libmodel.adjustLearningRate(0.1)
         model.num_epochs += 10
         model.start()
-    # for i in range(10):
-    #     model.num_epochs = 10 * (i + 1)
-    #     model.start()
-    #     model.libmodel.adjustLearningRate(0.1)
-    #     model.num_epochs += 1
-    #     model.start()
-    #     model.libmodel.adjustLearningRate(0.1)
-    #     model.num_epochs += 1
-    #     model.start()
-    #     model.libmodel.adjustLearningRate(100)
-    # model.libmodel.adjustLearningRate(0.1)
-    # model.num_epochs += 10
-    # model.start()
-    # model.libmodel.adjustLearningRate(0.1)
-    # model.num_epochs += 10
-    # model.start()
+    elif model.num_epochs > 0 and model.num_epochs2 == 0:
+        for i in range(10):
+            model.num_epochs = 10 * (i + 1)
+            model.start()
+            model.libmodel.adjustLearningRate(0.1)
+            model.num_epochs += 1
+            model.start()
+            model.libmodel.adjustLearningRate(0.1)
+            model.num_epochs += 1
+            model.start()
+            model.libmodel.adjustLearningRate(100)
+        model.libmodel.adjustLearningRate(0.1)
+        model.num_epochs += 10
+        model.start()
+        model.libmodel.adjustLearningRate(0.1)
+        model.num_epochs += 10
+        model.start()
