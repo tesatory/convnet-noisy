@@ -148,6 +148,8 @@ public:
 
 class SoftmaxLayer : public Layer {
 protected:
+    float _alpha;
+    float _beta;
     void fpropActs(int inpIdx, float scaleTargets, PASS_TYPE passType);
     void bpropActs(NVMatrix& v, int inpIdx, float scaleTargets, PASS_TYPE passType);
 public:

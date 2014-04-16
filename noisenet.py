@@ -83,7 +83,7 @@ if __name__ == "__main__":
     op, load_dic = IGPUModel.parse_options(op)
     model = NoiseNet(op, load_dic)
 
-    if model.num_epochs > 0 and (model.num_epochs2 > 0 or model.noise_true):
+    if model.num_epochs + model.num_epochs2 > 0:
         model.start()
         if model.num_epochs2 > 0:
             model.libmodel.setNoiseParams(model.noise_eps, model.noise_wc)
@@ -95,20 +95,20 @@ if __name__ == "__main__":
         model.libmodel.adjustLearningRate(0.1)
         model.num_epochs += 10
         model.start()
-    elif model.num_epochs > 0 and model.num_epochs2 == 0:
-        for i in range(10):
-            model.num_epochs = 10 * (i + 1)
-            model.start()
-            model.libmodel.adjustLearningRate(0.1)
-            model.num_epochs += 1
-            model.start()
-            model.libmodel.adjustLearningRate(0.1)
-            model.num_epochs += 1
-            model.start()
-            model.libmodel.adjustLearningRate(100)
-        model.libmodel.adjustLearningRate(0.1)
-        model.num_epochs += 10
-        model.start()
-        model.libmodel.adjustLearningRate(0.1)
-        model.num_epochs += 10
-        model.start()
+    # elif model.num_epochs > 0 and model.num_epochs2 == 0:
+    #     for i in range(10):
+    #         model.num_epochs = 10 * (i + 1)
+    #         model.start()
+    #         model.libmodel.adjustLearningRate(0.1)
+    #         model.num_epochs += 1
+    #         model.start()
+    #         model.libmodel.adjustLearningRate(0.1)
+    #         model.num_epochs += 1
+    #         model.start()
+    #         model.libmodel.adjustLearningRate(100)
+    #     model.libmodel.adjustLearningRate(0.1)
+    #     model.num_epochs += 10
+    #     model.start()
+    #     model.libmodel.adjustLearningRate(0.1)
+    #     model.num_epochs += 10
+    #     model.start()
