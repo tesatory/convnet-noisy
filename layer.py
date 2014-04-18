@@ -985,8 +985,8 @@ class SoftmaxLayerParser(LayerWithInputParser):
 
     def add_params(self, mcp):
         dic, name = self.dic, self.dic['name']
-        dic['alpha'] = mcp.safe_get_float(name, 'alpha', default=1.0)
-        dic['beta'] = mcp.safe_get_float(name, 'beta', default=0.0)
+        dic['alpha'] = mcp.safe_get_float(name, 'alpha', default=1)
+        dic['beta'] = mcp.safe_get_float(name, 'beta', default=0)
 
 class PoolLayerParser(LayerWithInputParser):
     def __init__(self):

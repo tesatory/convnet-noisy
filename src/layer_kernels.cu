@@ -271,7 +271,7 @@ void computeSoftmaxGrad(NVMatrix& acts, NVMatrix& actsGrad, NVMatrix& target, bo
     cutilCheckMsg("computeSoftmaxGrad: Kernel execution failed");
 }
 
-void computeLogregSoftmaxGrad(NVMatrix& labels, NVMatrix& probs, NVMatrix& target, bool add, float coeff, float alpha = 1.0, float beta = 0.0) {
+void computeLogregSoftmaxGrad(NVMatrix& labels, NVMatrix& probs, NVMatrix& target, bool add, float coeff, float alpha, float beta) {
     int numCases = probs.getLeadingDim(); 
     int numOut = probs.getFollowingDim(); 
     assert(labels.getNumElements() == numCases);
@@ -279,7 +279,7 @@ void computeLogregSoftmaxGrad(NVMatrix& labels, NVMatrix& probs, NVMatrix& targe
     assert(target.isContiguous());
     assert(labels.isContiguous());
     assert(probs.isTrans());
-    
+
     dim3 threads(LOGREG_GRAD_THREADS_X, LOGREG_GRAD_THREADS_Y);
     dim3 blocks(DIVUP(numCases, LOGREG_GRAD_THREADS_X), DIVUP(numOut, LOGREG_GRAD_THREADS_Y));
     if (!add) {
