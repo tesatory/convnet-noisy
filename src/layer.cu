@@ -388,14 +388,6 @@ void FCLayer::fpropActs(int inpIdx, float scaleTargets, PASS_TYPE passType) {
 void FCLayer::bpropActs(NVMatrix& v, int inpIdx, float scaleTargets, PASS_TYPE passType) {
     NVMatrix& weights_T = _weights[inpIdx].getW().getTranspose();
     _prev[inpIdx]->getActsGrad().addProduct(v, weights_T, scaleTargets, 1);
-    // if (getName() == "noise") {
-    //     cout << _prev[inpIdx]->getActsGrad().min() << " | " << _prev[inpIdx]->getActsGrad().max() << "\n";
-    //     if(isnan(_prev[inpIdx]->getActsGrad().min()) || isnan(_prev[inpIdx]->getActsGrad().max())){
-    //         v.print(200, 200);
-    //         weights_T.print(100, 100);
-    //         assert(false);
-    //     }
-    // }
     delete &weights_T;
 }
 
