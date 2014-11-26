@@ -102,9 +102,8 @@ void TrainingWorker::run() {
             _convNet->updateWeights();
             if (l.getName() == "noise") {
                 // this weight is representing probability, so it should be normalized
-                Weight& w = ((WeightLayer&)l).getWeights(0);
-                if (w.getEps() > 0) {
-                    NVMatrix& m = w.getW();
+                if (((WeightLayer&)l).getWeights(0).getEps() > 0) {
+                    NVMatrix& m = ((WeightLayer&)l).getWeights(0).getW();
                     assert(m.getNumCols() == m.getNumRows());
                     prob_project(m);
                 }
