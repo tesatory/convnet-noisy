@@ -30,26 +30,12 @@ class NoiseNet(ConvNet):
         ConvNet.init_data_providers(self)
         if self.noise_level == 0:
             return
-        self.noise_W = n.load('data/mixing-offdiag-2.npy')
+        self.noise_W = n.load(self.noise_Qpath)
         self.noise_W = self.noise_level * self.noise_W + (1 - self.noise_level) * n.eye(self.noise_W.shape[0])
-        label_path = './data/cifar-mix2-noisy-labels-nl' + str(self.noise_level)
-        if os.path.exists(label_path):
-            print 'loading noisy labels from ' + label_path
-            f = open(label_path,'rb')
-            data = cPickle.load(f)
-            f.close()
-            for d in self.train_data_provider.data_dic:
-                d['labels'] = n.require(data[d['batch_label']], dtype=n.single, requirements='C')
-        else:
-            print 'saving noisy labels to ' + label_path
-            data = dict()
-            for d in self.train_data_provider.data_dic:
-                d['labels'] = mix_labels(self.noise_W, d['labels'])
-                d['labels'] = n.require(d['labels'].reshape((1, d['data'].shape[1])), dtype=n.single, requirements='C')
-                data[d['batch_label']] = d['labels']
-            f = open(label_path,'wb')
-            cPickle.dump(data, f, protocol=-1)
-            f.close()
+        for d in self.train_data_provider.data_dic:
+            d['labels'] = mix_labels(self.noise_W, d['labels'])
+            d['labels'] = n.require(d['labels'].reshape((1, d['data'].shape[1])), dtype=n.single, requirements='C')
+
     @classmethod
     def get_options_parser(cls):
         op = ConvNet.get_options_parser()
@@ -58,6 +44,7 @@ class NoiseNet(ConvNet):
         op.add_option("noise-wc", "noise_wc", FloatOptionParser, "Weight cost on noise matrix", default=0.1)
         op.add_option("noise-level", "noise_level", FloatOptionParser, "Amount of incorrect training labels", default=0.0)
         op.add_option("noise-true", "noise_true", BooleanOptionParser, "Use true noise matrix", default=0)
+        op.add_option("noise-Qpath", "noise_Qpath", StringOptionParser, "Path to noise matrix Q", default="data/mixing-offdiag-2.npy")
 
         op.options["dp_type"].default = "cifar"
         op.options["data_path"].default = "/home/sainbar/data/cifar-10/train"
