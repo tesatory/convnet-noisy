@@ -24,22 +24,6 @@ class NoiseNet(ConvNet):
         if self.layers[-2]['name'] == 'noise':
             if self.noise_true:
                 self.layers[-2]['weights'][0] = n.array(self.noise_W.transpose(), dtype=n.single, order='C')
-                # self.layers[-2]['weights'][0] = n.array(n.load('./data/cifar-mix2-nl0.7-Qest.npy').transpose(), dtype=n.single, order='C')
-            if self.layers[-2]['weights'][0].shape == (11, 11):
-                w = n.eye(11, dtype = n.float32)
-                w[10, :10] = 0.1
-                w[10, 10] = 0
-                print "test weight for noise layer"
-                print w
-                self.layers[-2]['testWeight'] = w
-                self.layers[-2]['testWeightInc'] = n.zeros((11, 11), dtype = n.float32)
-            if self.layers[-2]['weights'][0].shape == (10, 20):
-                w = n.zeros((10, 20), dtype = n.float32)
-                w[:,:10] = n.eye(10, dtype = n.float32)
-                print "test weight for noise layer"
-                print w
-                self.layers[-2]['testWeight'] = w
-                self.layers[-2]['testWeightInc'] = n.zeros((10, 20), dtype = n.float32)
         ConvNet.init_model_lib(self)
 
     def init_data_providers(self):

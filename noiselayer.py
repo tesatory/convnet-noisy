@@ -8,10 +8,3 @@ def initW(name, idx, shape, params):
     # return W.astype(np.float32)
     return np.eye(shape[0], dtype = np.float32)
     # return np.random.rand(10,10).astype(np.float32)
-
-def initWdual(name, idx, shape, params):
-    assert 2 * shape[0] == shape[1]
-    W = np.zeros(shape, dtype = np.float32)
-    W[:,:shape[0]] = np.eye(shape[0], dtype = np.float32)
-    W[:,shape[0]:] = np.eye(shape[0], dtype = np.float32)
-    return W
