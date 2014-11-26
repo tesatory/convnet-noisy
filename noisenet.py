@@ -3,6 +3,7 @@ from convnet import ConvNet
 from options import *
 import numpy as n
 import scipy.io
+import cPickle
 
 def mix_labels(W, labels):
     N = W.shape[0]
@@ -23,6 +24,7 @@ class NoiseNet(ConvNet):
         if self.layers[-2]['name'] == 'noise':
             if self.noise_true:
                 self.layers[-2]['weights'][0] = n.array(self.noise_W.transpose(), dtype=n.single, order='C')
+                # self.layers[-2]['weights'][0] = n.array(n.load('./data/cifar-mix2-nl0.7-Qest.npy').transpose(), dtype=n.single, order='C')
             if self.layers[-2]['weights'][0].shape == (11, 11):
                 w = n.eye(11, dtype = n.float32)
                 w[10, :10] = 0.1
@@ -46,10 +48,24 @@ class NoiseNet(ConvNet):
             return
         self.noise_W = n.load('data/mixing-offdiag-2.npy')
         self.noise_W = self.noise_level * self.noise_W + (1 - self.noise_level) * n.eye(self.noise_W.shape[0])
-        for d in self.train_data_provider.data_dic:
-            d['labels'] = mix_labels(self.noise_W, d['labels'])
-            d['labels'] = n.require(d['labels'].reshape((1, d['data'].shape[1])), dtype=n.single, requirements='C')
-
+        label_path = './data/cifar-mix2-noisy-labels-nl' + str(self.noise_level)
+        if os.path.exists(label_path):
+            print 'loading noisy labels from ' + label_path
+            f = open(label_path,'rb')
+            data = cPickle.load(f)
+            f.close()
+            for d in self.train_data_provider.data_dic:
+                d['labels'] = n.require(data[d['batch_label']], dtype=n.single, requirements='C')
+        else:
+            print 'saving noisy labels to ' + label_path
+            data = dict()
+            for d in self.train_data_provider.data_dic:
+                d['labels'] = mix_labels(self.noise_W, d['labels'])
+                d['labels'] = n.require(d['labels'].reshape((1, d['data'].shape[1])), dtype=n.single, requirements='C')
+                data[d['batch_label']] = d['labels']
+            f = open(label_path,'wb')
+            cPickle.dump(data, f, protocol=-1)
+            f.close()
     @classmethod
     def get_options_parser(cls):
         op = ConvNet.get_options_parser()
@@ -95,20 +111,3 @@ if __name__ == "__main__":
         model.libmodel.adjustLearningRate(0.1)
         model.num_epochs += 10
         model.start()
-    # elif model.num_epochs > 0 and model.num_epochs2 == 0:
-    #     for i in range(10):
-    #         model.num_epochs = 10 * (i + 1)
-    #         model.start()
-    #         model.libmodel.adjustLearningRate(0.1)
-    #         model.num_epochs += 1
-    #         model.start()
-    #         model.libmodel.adjustLearningRate(0.1)
-    #         model.num_epochs += 1
-    #         model.start()
-    #         model.libmodel.adjustLearningRate(100)
-    #     model.libmodel.adjustLearningRate(0.1)
-    #     model.num_epochs += 10
-    #     model.start()
-    #     model.libmodel.adjustLearningRate(0.1)
-    #     model.num_epochs += 10
-    #     model.start()
